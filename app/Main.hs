@@ -1,6 +1,6 @@
 module Main where
 
-import Adjunctions
+import Adjunctions(adjunctionMain)
 
 main :: IO ()
-main = putStrLn "all working yo"
+main = adjunctionMain >> putStrLn "sorted"

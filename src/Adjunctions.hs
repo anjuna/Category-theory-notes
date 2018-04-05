@@ -6,6 +6,9 @@
 
 module Adjunctions where
 
+    
+adjunctionMain :: IO ()
+adjunctionMain = putStrLn "Adjunctions are working!"
 
 -- Want to show adjunction between product and reader functors, and how this elicits currying
 
