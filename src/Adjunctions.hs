@@ -1,3 +1,7 @@
+-- inspired from:
+-- http://www.stephendiehl.com/posts/adjunctions.html
+-- https://bartoszmilewski.com/2016/04/18/adjunctions/
+
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -6,7 +10,7 @@
 
 module Adjunctions where
 
-    
+
 adjunctionMain :: IO ()
 adjunctionMain = putStrLn "Adjunctions are working!"
 
@@ -28,26 +32,32 @@ instance Functor (MyIdentity) where
     fmap f (I x) = I $ f x
 
 
-type f ~> g = forall x . f x -> g x
 data CompF f g a = CompF { unCompF :: f (g a) }
 
 -- (a -> b) -> f (g a) -> f (g b)
 instance  (Functor f, Functor g) => Functor (CompF f g) where
     fmap fun c = CompF $ fmap (fmap fun) (unCompF c)
     
+-- the component at x of the natural transformation between functors f and g
+type f ~> g = forall x . f x -> g x
 
--- F ⊢ G
+
+
+-- F ⊣ G
 class (Functor f, Functor g) => MyAdjunction f g where
-    -- eta
-    unit :: CompF f g ~> MyIdentity
-    -- epsilon
-    counit :: MyIdentity ~> CompF g f
+    -- 'extract' for a comonad
+    epsilon :: CompF f g ~> MyIdentity
+    -- exactly 'return' in monad
+    eta :: MyIdentity ~> CompF g f
 
 
 -- Need to find natural transformations:
+instance MyAdjunction (MyProduct a) (MyReader a) where
+    epsilon (CompF (P i (R r))) = I $ r i
+    eta (I x) = CompF $ R $ \e -> P e x
 
 
-
+-- This also induces the hom set adjunction
 
 
 
