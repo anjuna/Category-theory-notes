@@ -1,12 +1,15 @@
 -- inspired from:
 -- http://www.stephendiehl.com/posts/adjunctions.html
 -- https://bartoszmilewski.com/2016/04/18/adjunctions/
+-- https://en.wikipedia.org/wiki/Adjoint_functors
 
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE FlexibleContexts #-}
+
 
 module Adjunctions where
 
@@ -56,11 +59,40 @@ instance MyAdjunction (MyProduct a) (MyReader a) where
     epsilon (CompF (P i (R r))) = I $ r i
     eta (I x) = CompF $ R $ \e -> P e x
 
+-- Wanted to show composition and identity functions with the data types
+-- these just unwrap the adjunction transformations
+easierEpsilon :: MyAdjunction f g => forall z . f (g z) -> z
+easierEpsilon = unI . epsilon . CompF
+easierEta :: MyAdjunction f g => forall z . z -> g (f z)
+easierEta = unCompF . eta . I
 
--- This also induces the hom set adjunction
+
+-- These natural transformations can induce the adjunction via hom sets:
+-- For each f : FY → X and each g : Y → GX, define
+phi :: MyAdjunction f g => forall x y . (f y -> x) -> (y -> g x)
+psi :: MyAdjunction f g => forall x y . (y -> g x) -> (f y -> x)
+
+-- Want to show phi . psi = psi . phi = id
+phi f = fmap f . easierEta
+psi g = easierEpsilon . fmap g
 
 
+-- hmm
+-- let right = phi . psi
+-- let left = psi . phi
 
+
+class (Functor t) => MyMonad t where
+    muM :: t (t a) -> t a
+    etaM :: a -> t a
+    (>>=) :: t a -> (a -> t b) -> t b
+    x >>= f = (muM . fmap f) x
+
+-- lets make the monad from two adjoint functors:
+
+class (MyAdjunction f g) => Monad m where
+    etaA :: eta
+    
 
 
 
