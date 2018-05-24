@@ -1,15 +1,28 @@
 {-# LANGUAGE DeriveFunctor #-}
 
+module ComonadStuff where
+
 -- import Control.Comonad
 
 loeb :: Functor f =>  f (f a -> a) -> f a
 loeb fs = xs where xs = fmap ($ xs) fs
+
+-- observe ($) :: (a -> b) -> a -> b
+-- then ($ a) :: (a -> b) -> b (partially applying the right argument to the infix operator)
+-- ie  ($ f) = \x -> f $ x
+-- think of it as a 'suspended computation', but more on that in CPS notes
+loebReadable :: Functor f =>  f (f a -> a) -> f a
+loebReadable fs = xs where xs = fmap (\f -> f xs) fs
 
 fix :: (a -> a) -> a 
 fix f = let x = f x in x
 
 loebNew :: Functor f =>  f (f a -> a) -> f a
 loebNew fs = fix $ \xs -> fmap ($ xs) fs
+
+-- without the weird continuation thing ($ xs)
+loebAgain :: Functor f =>  f (f a -> a) -> f a
+loebAgain fs = fmap (\f -> f (loebAgain fs)) fs
 
 -- hmmmm
 
@@ -49,7 +62,6 @@ moveRight (Tape l f (Cons rh rt)) = Tape (Cons f l) rh rt
 iterStream :: (a -> a) -> a -> Stream a
 iterStream f e = let eAgain = f e 
                 in Cons e (iterStream f eAgain)
-
 
 instance Comonad Tape where
     coreturn (Tape _ x _) = x
